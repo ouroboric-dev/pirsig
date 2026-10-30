@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use clap::{Subcommand, ValueEnum};
+use clap::Subcommand;
 use loco_rs::{app::AppContext, Result};
 use pirsig_github::{
     index::{plan, Depth},
@@ -11,32 +11,15 @@ use sea_orm::TransactionTrait;
 use super::{explain, Output};
 use crate::{
     ingest::github::{self, Client, Filing, Indexed, Repo, Tiering},
-    reset,
+    reset, seed,
+    settings::{Forks, PrivateRepos, Settings},
 };
 
-/// `psg bootstrap gh`, `psg bootstrap gh --private minimal --readme --dry-run`.
+/// `psg bootstrap gh --private minimal --readme --dry-run`, `psg bootstrap repo acme/brain`.
 #[derive(Debug, clap::Args)]
 pub struct Args {
     #[command(subcommand)]
     source: Source,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
-enum Forks {
-    /// One "GitHub: public forks" note, a line per fork.
-    Index,
-    /// A note per fork, as for own repositories.
-    Notes,
-    /// Leave forks out.
-    Skip,
-}
-
-#[derive(Debug, Clone, Copy, ValueEnum)]
-enum PrivateRepos {
-    /// Leave them out.
-    Skip,
-    /// Name, URL, language and last push; never description, topics or README.
-    Minimal,
 }
 
 #[derive(Debug, Subcommand)]
@@ -46,24 +29,42 @@ enum Source {
     /// `GITHUB_TOKEN` (e.g. `GH_TOKEN=$(gh auth token)`); without one, only a named
     /// user's public repos, within GitHub's anonymous rate limit.
     Gh(GhArgs),
+    /// A Pirsig repository's fork state (its brain/): the template, any copy
+    /// of it, or a local checkout. Default: `[template] repo` in pirsig.toml.
+    Repo(RepoArgs),
 }
 
-/// `psg gh` and `psg bootstrap gh`.
+/// `psg bootstrap repo [OWNER/REPO | URL | DIR]`.
+#[derive(Debug, clap::Args)]
+pub struct RepoArgs {
+    /// owner/repo, a GitHub URL or a folder (default: `[template] repo`).
+    repo: Option<String>,
+    /// Branch of a GitHub repository (default: `[template] branch`).
+    #[arg(long)]
+    branch: Option<String>,
+    /// Replace a brain that is not empty: it is backed up next to its
+    /// database file, emptied, then filled from the repository.
+    #[arg(long)]
+    overwrite: bool,
+}
+
+/// `psg gh` and `psg bootstrap gh`. A flag left out takes its `[github]`
+/// default from pirsig.toml.
 #[derive(Debug, clap::Args)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct GhArgs {
-    /// GitHub user (default: the token's user).
+    /// GitHub user (default: `[github] user`, else the token's user).
     user: Option<String>,
-    /// Your private repositories (only seen with your own token).
-    #[arg(long, value_enum, default_value = "skip")]
-    private: PrivateRepos,
-    /// Public forks: one index note (index), a note each (notes), or none (skip).
-    #[arg(long, value_enum, default_value = "index")]
-    forks: Forks,
+    /// Your private repositories (only seen with your own token) [default: skip].
+    #[arg(long, value_enum)]
+    private: Option<PrivateRepos>,
+    /// Public forks: one index note (index), a note each (notes), or none (skip) [default: index].
+    #[arg(long, value_enum)]
+    forks: Option<Forks>,
     /// Own repositories with no push in this many months go in one cold index
-    /// note instead of a note each.
-    #[arg(long, value_name = "MONTHS", default_value_t = 24)]
-    cold_after: u32,
+    /// note instead of a note each [default: 24].
+    #[arg(long, value_name = "MONTHS")]
+    cold_after: Option<u32>,
     /// Also read each public repo's README for its first paragraph.
     #[arg(long)]
     readme: bool,
@@ -117,8 +118,35 @@ fn indexed_line(i: &Indexed) -> String {
 }
 
 pub async fn run(ctx: &AppContext, out: &Output, args: Args) -> Result<()> {
-    let Source::Gh(gh) = args.source;
-    run_gh(ctx, out, gh).await
+    match args.source {
+        Source::Gh(gh) => run_gh(ctx, out, gh).await,
+        Source::Repo(repo) => run_repo(ctx, out, repo).await,
+    }
+}
+
+pub async fn run_repo(ctx: &AppContext, out: &Output, args: RepoArgs) -> Result<()> {
+    let settings = Settings::load()?;
+    if !reset::is_empty(&ctx.db).await? {
+        if !args.overwrite {
+            return Err(loco_rs::Error::Message(
+                "this brain is not empty: pass --overwrite to replace it (it is backed up first)"
+                    .into(),
+            ));
+        }
+        let wiped = reset::wipe(&ctx.db, &ctx.config.database.uri).await?;
+        if !out.json {
+            println!("{}", reset::wiped_line(&wiped));
+        }
+    }
+    let report = seed::bootstrap(
+        &ctx.db,
+        &settings,
+        args.repo.as_deref(),
+        args.branch.as_deref(),
+    )
+    .await?;
+    out.one(&report, super::obsidian::imported);
+    Ok(())
 }
 
 pub async fn run_gh(ctx: &AppContext, out: &Output, args: GhArgs) -> Result<()> {
@@ -132,6 +160,12 @@ pub async fn run_gh(ctx: &AppContext, out: &Output, args: GhArgs) -> Result<()> 
         dry_run,
         overwrite,
     } = args;
+    let defaults = Settings::load()?.github;
+    let private = private.unwrap_or(defaults.private);
+    let forks = forks.unwrap_or(defaults.forks);
+    let cold_after = cold_after.unwrap_or(defaults.cold_after);
+    let readme = readme || defaults.readme;
+    let user = user.or_else(|| Some(defaults.user).filter(|u| !u.trim().is_empty()));
     let client = Client::from_env()?;
     let (user, facts) = client.facts(user.as_deref()).await?;
     let scope = Scope {

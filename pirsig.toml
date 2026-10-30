@@ -1,0 +1,49 @@
+# pirsig.toml — how this copy of Pirsig runs.
+#
+# `psg` reads ./pirsig.toml (or the file `PIRSIG_CONFIG` names); the apps read the one in
+# their data folder, written from this file on first launch and yours to edit after. Every
+# key is optional: a missing key, or a missing file, takes the default shown here. A key
+# Pirsig does not know is an error, so a typo does not go unnoticed.
+#
+# The Loco side (port, database, logging) stays in config/<env>.yaml; this file is about
+# the brain: where it comes from, and what Pirsig does with it.
+
+# The repository a new brain is bootstrapped from: its fork state, the `[brain] fork_state`
+# folder in it. Any copy of the Pirsig template works (`just adopt` points this at yours),
+# and so does a local checkout: `repo = "/path/to/pirsig"`.
+[template]
+repo = "h0ffmann/pirsig"
+branch = "main"
+
+[brain]
+# The fork state's folder in the repository: `psg fork export` writes it, `psg fork import`
+# and `psg bootstrap repo` read it.
+fork_state = "brain"
+
+# Defaults of `psg gh` and `psg bootstrap gh`; their flags still win.
+[github]
+# Whose repositories; empty means the token's user.
+user = ""
+# Your private repositories: "skip" or "minimal" (name, URL, language, last push).
+private = "skip"
+# Public forks: "index" (one note), "notes" (a note each) or "skip".
+forks = "index"
+# Own repositories with no push in this many months go in one cold index note.
+cold_after = 24
+# Read each public repository's README for its first paragraph.
+readme = false
+
+# The apps (Tauri): macOS desktop and Android, for now.
+#
+# `seed` is what an empty brain starts from on first launch: "template" (the fork state of
+# `[template] repo`, downloaded once) or "empty". A brain that holds anything is never
+# touched, and an app run from a checkout (`just desktop`) uses the checkout's brain.
+[apps]
+width = 1240
+height = 820
+
+[apps.macos]
+seed = "template"
+
+[apps.android]
+seed = "empty"

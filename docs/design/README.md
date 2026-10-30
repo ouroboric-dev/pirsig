@@ -10,6 +10,7 @@ stays out. Code that implements a note links back to it.
 | [`pirsig.dev.git`: git as an inbound channel](git-inbound.md) | inbound | Pull repositories and their READMEs into the brain as resources and atomic notes, linked to each other. |
 | [`psg bootstrap gh`: your GitHub FOSS work](github-bootstrap.md) | inbound | Sign in with the Pirsig GitHub App and index your repos, public forks and org contributions (private ones metadata-only) as the brain's first layer. |
 | [Labels and tags](labels-and-tags.md) | model | Labels are values (`#running`), tags are key/value pairs (`status=active`); how each maps to Obsidian, the CLI and the API. |
+| [Mobile screens](mobile-screens.md) | app | Mock-ups of the phone app, drawn in OpenPencil: Today, Notes, a note, the slip-box tree, a project and the capture sheet. |
 
 Built: `pirsig.pkm.obsidian` (vault out and in), `pirsig.web.rss` (feeds in, the slipbox out),
 `pirsig.sci.arxiv` (papers in) and `psg bootstrap gh` (repos in, with a token; the GitHub

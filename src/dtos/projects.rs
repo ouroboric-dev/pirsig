@@ -1,7 +1,9 @@
+use loco_rs::model::ModelResult;
 use sea_orm::prelude::{Date, DateTimeWithTimeZone};
+use sea_orm::ConnectionTrait;
 use ts_rs::TS;
 
-use crate::dtos::common::Patch;
+use crate::{dtos::common::Patch, models::notes};
 
 #[derive(serde::Serialize, serde::Deserialize, TS)]
 pub struct ProjectDto {
@@ -75,16 +77,31 @@ pub struct ProjectNoteDto {
     pub title: String,
     pub kind: String,
     pub context: Option<String>,
+    pub tags: Vec<String>,
 }
 
-impl From<(crate::models::_entities::notes::Model, Option<String>)> for ProjectNoteDto {
-    fn from((n, context): (crate::models::_entities::notes::Model, Option<String>)) -> Self {
-        Self {
-            zid: n.zid,
-            title: n.title,
-            kind: n.kind,
-            context,
-        }
+impl ProjectNoteDto {
+    /// The project's notes with their tags, in one query for the tags.
+    ///
+    /// # Errors
+    ///
+    /// When the tags can't be read.
+    pub async fn many<C: ConnectionTrait>(
+        db: &C,
+        notes: Vec<(notes::Model, Option<String>)>,
+    ) -> ModelResult<Vec<Self>> {
+        let ids: Vec<i64> = notes.iter().map(|(n, _)| n.id).collect();
+        let mut tags = notes::Entity::tags_of(db, &ids).await?;
+        Ok(notes
+            .into_iter()
+            .map(|(n, context)| Self {
+                tags: tags.remove(&n.id).unwrap_or_default(),
+                zid: n.zid,
+                title: n.title,
+                kind: n.kind,
+                context,
+            })
+            .collect())
     }
 }
 

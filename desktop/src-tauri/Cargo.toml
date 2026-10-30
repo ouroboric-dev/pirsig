@@ -1,6 +1,6 @@
 [package]
 name = "pirsig-desktop"
-description = "Pirsig as a desktop app (Tauri 2): the whole brain, with Pirsig's REST API inside"
+description = "Pirsig as an app (Tauri 2) on macOS and Android: the whole brain, with Pirsig's REST API inside"
 version = "0.1.0"
 edition = "2021"
 license = "MPL-2.0"
@@ -10,6 +10,11 @@ publish = false
 # `just check` should not (see ../README.md)
 [workspace]
 
+# Android loads the app as a library; macOS runs main.rs, which calls it
+[lib]
+name = "pirsig_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -18,3 +23,5 @@ tauri = { version = "2", features = [] }
 zettelkasten = { path = "../.." }
 loco-rs = { version = "1.2" }
 tokio = { version = "1.45", features = ["rt-multi-thread", "net", "time"] }
+# the page an installed app (or Android) unpacks into its data folder
+include_dir = { version = "0.7" }

@@ -23,6 +23,9 @@ target/
 build/
 graphify-out/
 
+# the phone UI, built from crates/pirsig-mobile (scripts/build-mobile-ui.sh)
+desktop/dist/mobile/
+
 # desktop/ e2e (Playwright)
 node_modules/
 test-results/

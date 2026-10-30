@@ -1,2 +1,3 @@
 target/
-gen/
+# tauri-build writes these on every build; gen/android is the Android project, and is kept
+gen/schemas/

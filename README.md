@@ -55,7 +55,7 @@ fills the brain from your own GitHub (see [below](#start-from-my-brain-or-from-y
 | | How | Status |
 |---|---|---|
 | **Self-hosted, live** | The desktop app (Tauri, Rust): `just desktop`. Or the server alone, `just dev`, with the same UI in a browser. Your brain stays on your machine, in SQLite. | available |
-| **Mobile app** | Pirsig on your phone. | coming |
+| **Android app** | The same app on your phone (Tauri): `just android-dev` on a device or emulator, `just android` for an APK. The brain lives on the phone. | from source |
 | **Mobile cloud** | Pirsig hosted for you at [piabrota.art/pirsig](https://piabrota.art/pirsig). | coming |
 
 ## How it works
@@ -91,6 +91,12 @@ just brain-reset           # your own GitHub in the brain (or: just fork-state, 
 git commit -am "Adopt Pirsig" && git push
 ```
 
+Then make it work your way in [`pirsig.toml`](pirsig.toml): the repository a new brain is
+bootstrapped from (`just adopt` points it at your copy), the fork state's folder, the defaults
+of `psg gh`, and what the macOS and Android apps start from on first launch. Every key is
+optional, and a key Pirsig does not know is an error, so a typo shows. The Loco side (port,
+database, logging) stays in `config/`.
+
 To take later versions of Pirsig, add this repository as `upstream`:
 `git remote add upstream https://github.com/h0ffmann/pirsig.git`, then
 `git pull upstream main --allow-unrelated-histories` the first time and `git pull upstream main`
@@ -111,10 +117,15 @@ Obsidian export format) that reads well on GitHub too:
 just fork-state        # start from brain/: my note structure, in your brain
 just brain-reset       # or replace the whole brain with your own GitHub (psg gh --overwrite)
 just fork-export       # write your brain to brain/, for whoever copies yours
+psg bootstrap repo acme/brain   # or start from any Pirsig repository's brain/, no clone needed
 ```
 
+`psg bootstrap repo` takes `owner/repo`, a GitHub URL or a local checkout, and defaults to
+`[template] repo` in `pirsig.toml`; it downloads one tarball and reads only its fork state. The
+macOS app does the same on first launch, so an installed app starts from the template's brain.
+
 `psg gh` takes the same depth controls: `--cold-after MONTHS` (default 24) and
-`--forks index|notes|skip`. Both `fork-state` and `brain-reset` back the brain up next to its
+`--forks index|notes|skip`, with their defaults in `pirsig.toml`'s `[github]`. Both `fork-state` and `brain-reset` back the brain up next to its
 database file before they replace it. `psg fork export` leaves out every note tagged
 `#private`, the resources only those notes cite, and any link or list line that would name
 them, so private repositories never reach `brain/`.
@@ -229,10 +240,12 @@ matrix: what is enforced, what is only reported, and where each rule is tested.
 
 ## Apps and tools
 
-### Desktop app
+### Desktop and Android apps
 
-`just desktop` opens Pirsig as a desktop app ([`desktop/`](desktop/README.md)) on the same
-brain as `psg`. Everything is managed there: PARA and the archive, notes with their links and
+The app ([`desktop/`](desktop/README.md), Tauri 2) targets macOS and Android. `just desktop`
+opens it on the same brain as `psg`; `just desktop-build` makes a `Pirsig.app`, which keeps its
+brain in its own data folder and, on first launch, bootstraps it from the template's fork
+state. `just android-dev` and `just android` run it on a phone. Everything is managed there: PARA and the archive, notes with their links and
 backlinks, the slip-box views, Hippos, feeds and arXiv, Plasticity and readiness. The app runs
 the REST API inside itself and the API serves the UI, so `just dev` shows the same UI in a
 browser. `just desktop-e2e` drives it end to end in WebKit.
@@ -294,7 +307,8 @@ the vendored archify, and `just figure-check` says whether a PNG is stale.
 
 - **CLI.** `just install` puts `psg` on your PATH (or `cargo run --bin psg -- <cmd>`). Every
   command takes `--json`. `psg` reads the config of `LOCO_ENV` (default `development`) from
-  `./config`; `DATABASE_URL` picks another brain. Pending migrations run on their own.
+  `./config`, and `./pirsig.toml` (or the file `PIRSIG_CONFIG` names); `DATABASE_URL` picks
+  another brain. Pending migrations run on their own.
 - **justfile.** `just n "An idea"`, `just show 1a`, `just find rust`, `just ready`,
   `just dev`, `just check` (fmt, clippy and tests, as CI). `just` lists them all.
 - **Server.** `cargo loco start` serves the API and the UI on http://localhost:5150. Rust 1.94

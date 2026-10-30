@@ -96,7 +96,7 @@ async fn unarchive(State(ctx): State<AppContext>, Path(id): Path<i64>) -> Result
 
 async fn pulled(ctx: &AppContext, project: &Model) -> Result<Json<Vec<ProjectNoteDto>>> {
     let notes = project.notes(&ctx.db).await?;
-    Ok(Json(notes.into_iter().map(Into::into).collect()))
+    Ok(Json(ProjectNoteDto::many(&ctx.db, notes).await?))
 }
 
 #[debug_handler]

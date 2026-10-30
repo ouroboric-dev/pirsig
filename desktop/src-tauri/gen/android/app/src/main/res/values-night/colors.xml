@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- the mobile design's tokens (crates/pirsig-mobile/style/tokens.css), dark -->
+    <color name="pirsig_bg">#FF161615</color>
+    <color name="pirsig_panel">#FF1E1E1C</color>
+</resources>

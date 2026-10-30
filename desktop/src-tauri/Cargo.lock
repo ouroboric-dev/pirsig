@@ -2030,6 +2030,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "filetime"
+version = "0.2.29"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5c287a33c7f0a620c38e641e7f60827713987b3c0f26e8ddc9462cc69cf75759"
+dependencies = [
+ "cfg-if",
+ "libc",
+]
+
+[[package]]
 name = "find-msvc-tools"
 version = "0.1.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4614,6 +4624,7 @@ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 name = "pirsig-desktop"
 version = "0.1.0"
 dependencies = [
+ "include_dir",
  "loco-rs",
  "tauri",
  "tauri-build",
@@ -6512,6 +6523,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tar"
+version = "0.4.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f6221d9a6003c78398e3b239969f352578258df48c8eb051caadae0015bc840"
+dependencies = [
+ "filetime",
+ "libc",
+ "xattr",
+]
+
+[[package]]
 name = "target-lexicon"
 version = "0.12.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8267,6 +8289,7 @@ dependencies = [
  "chrono",
  "clap",
  "feed-rs",
+ "flate2",
  "include_dir",
  "loco-rs",
  "migration",
@@ -8277,7 +8300,9 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "tar",
  "tokio",
+ "toml 0.8.2",
  "tracing",
  "tracing-subscriber",
  "ts-rs",

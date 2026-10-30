@@ -1,14 +1,15 @@
-# desktop — the Tauri app compiles, and its UI works end to end. No bundle, no
-# release yet. macOS ships the webview Tauri needs; Linux would need
-# webkit2gtk first, so the UI is tested there in Playwright's WebKit instead.
+# desktop — the Tauri app compiles for its two targets, macOS and Android (a debug
+# APK, with the phone UI of crates/pirsig-mobile), and its UI works end to end. No signed release yet. macOS ships the
+# webview Tauri needs; Linux would need webkit2gtk first, so the UI is tested
+# there in Playwright's WebKit instead.
 name: desktop
 
 on:
   pull_request:
-    paths: ["desktop/**", "src/**", "config/development.yaml", Cargo.toml, Cargo.lock, rust-toolchain.toml, .github/workflows/desktop.yml]
+    paths: ["desktop/**", "src/**", "crates/pirsig-mobile/**", scripts/build-mobile-ui.sh, "config/development.yaml", pirsig.toml, Cargo.toml, Cargo.lock, rust-toolchain.toml, .github/workflows/desktop.yml]
   push:
     branches: [main]
-    paths: ["desktop/**", "src/**", "config/development.yaml", Cargo.toml, Cargo.lock, rust-toolchain.toml, .github/workflows/desktop.yml]
+    paths: ["desktop/**", "src/**", "crates/pirsig-mobile/**", scripts/build-mobile-ui.sh, "config/development.yaml", pirsig.toml, Cargo.toml, Cargo.lock, rust-toolchain.toml, .github/workflows/desktop.yml]
 
 permissions:
   contents: read
@@ -22,6 +23,30 @@ jobs:
         with:
           persist-credentials: false
       - run: cargo check --locked --manifest-path desktop/src-tauri/Cargo.toml
+
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.22.1
+      # the runner ships the Android SDK and NDK (ANDROID_NDK_LATEST_HOME, a shell variable)
+      - run: rustup target add aarch64-linux-android
+      # the phone UI: Tauri builds it (scripts/build-mobile-ui.sh) with this CLI, the crate's pinned version
+      - run: cargo install wasm-bindgen-cli --version 0.2.129 --locked
+      - run: cargo clippy --locked -p pirsig-mobile --target wasm32-unknown-unknown --all-targets -- -D warnings -W clippy::pedantic
+      - working-directory: desktop
+        run: |
+          npm ci
+          NDK_HOME="$ANDROID_NDK_LATEST_HOME" npx tauri android build --ci --debug --apk --target aarch64
 
   e2e:
     runs-on: ubuntu-latest

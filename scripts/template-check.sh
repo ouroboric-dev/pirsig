@@ -26,6 +26,12 @@ done
 check "README tells how to use the template" grep -q '^## Use this template' README.md
 check "README has a License section" grep -q '^## License' README.md
 
+echo "Configuration"
+check "pirsig.toml is tracked" git ls-files --error-unmatch pirsig.toml
+check "pirsig.toml names the template repository" grep -qE '^repo = "[^"]+/[^"]+"' pirsig.toml
+check "the apps target macOS and Android" bash -c \
+  'grep -q "\[apps.macos\]" pirsig.toml && grep -q "\[apps.android\]" pirsig.toml && test -d desktop/src-tauri/gen/android'
+
 echo "Nothing private ships"
 check "no brain database, env file, key or local config is tracked" bash -c \
   '! git ls-files | grep -E "\.sqlite|(^|/)\.env($|\.)|\.pem$|\.key$|id_(rsa|ed25519)|config/.*\.local\.yaml" | grep -vq "\.env\.example$"'
@@ -57,6 +63,9 @@ if (cd "$tmp" && git init -q && git add -A && scripts/adopt.sh acme brain >/dev/
     "cd '$tmp' && ! git grep -q 'h0ffmann/pirsig' -- ':!brain' ':!examples' ':!tests' ':!*.lock' ':!CHANGELOG.md' ':!scripts'"
   check "after it, the app id is io.github.acme.brain" grep -q '"io.github.acme.brain"' "$tmp/desktop/src-tauri/tauri.conf.json"
   check "after it, CODEOWNERS is @acme" grep -q '@acme' "$tmp/.github/CODEOWNERS"
+  check "after it, pirsig.toml bootstraps from acme/brain" grep -qx 'repo = "acme/brain"' "$tmp/pirsig.toml"
+  check "after it, the Android app is io.github.acme.brain" bash -c \
+    "cd '$tmp' && ! git grep -qF 'io.github.h0ffmann.pirsig' -- ':!scripts' && grep -q 'io.github.acme.brain' desktop/src-tauri/gen/android/app/build.gradle.kts"
 else
   no "just adopt acme brain runs in a copy"
 fi

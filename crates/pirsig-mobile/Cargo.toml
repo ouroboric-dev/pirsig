@@ -1,0 +1,23 @@
+[package]
+name = "pirsig-mobile"
+description = "Pirsig's phone UI (the Android app): Leptos compiled to WebAssembly, drawn after the mobile design in OpenPencil"
+version = "0.1.0"
+edition = "2021"
+license = "MPL-2.0"
+publish = false
+
+[lib]
+# cdylib: the WebAssembly module the page loads; rlib: native tests
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+leptos = { version = "0.8.22", features = ["csr"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1" }
+# must be the version of the wasm-bindgen CLI that builds the page (scripts/build-mobile-ui.sh)
+wasm-bindgen = { version = "=0.2.129" }
+gloo-net = { version = "0.7", default-features = false, features = ["http", "json"] }
+js-sys = { version = "0.3" }
+web-sys = { version = "0.3", features = ["MediaQueryList", "MediaQueryListEvent", "Window", "Location", "HtmlElement", "Element", "Document"] }
+console_error_panic_hook = { version = "0.1.7" }
+futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }

@@ -16,7 +16,7 @@ Surveyed on 2026-10-28, on `main` after #19.
   `gh repo edit h0ffmann/pirsig --description "無 Pirsig: a second brain, PARA and a Zettelkasten slip-box, in Rust: CLI, REST API, desktop app"`
 - [ ] **Topics**, so people find it; today there are none.
   `gh repo edit h0ffmann/pirsig --add-topic second-brain,zettelkasten,para-method,pkm,rust,loco-rs,tauri,obsidian,template`
-- [ ] **Issues** are on: the issue forms in `.github/ISSUE_TEMPLATE/` need them; today they are off.
+- [x] **Issues** are on: the issue forms in `.github/ISSUE_TEMPLATE/` need them.
   `gh repo edit h0ffmann/pirsig --enable-issues`
 - [ ] **Private vulnerability reporting** is on: `SECURITY.md` sends reports there; today it is off.
   `gh api -X PUT repos/h0ffmann/pirsig/private-vulnerability-reporting`
@@ -68,6 +68,12 @@ Surveyed on 2026-10-28, on `main` after #19.
   `tests/`; the GitHub App manifest tests pass in the adopted copy)*
 - [x] The README says what a copy does next: adopt, `just brain-reset` or `just fork-state`, and
   how to take later versions from `upstream`.
+- [x] `pirsig.toml` says how a copy runs, without editing code: the repository a new brain is
+  bootstrapped from, the fork state's folder, the defaults of `psg gh`, and what the apps start
+  from. Every key is optional and an unknown one is an error; the shipped file is exactly the
+  defaults (a unit test says so). `just adopt` points `[template] repo` at the copy. *(checked)*
+- [x] A brain can start from any Pirsig repository: `psg bootstrap repo [OWNER/REPO | URL | DIR]`
+  reads its fork state from one tarball, and an installed macOS app does that on first launch.
 
 ## 5. CI a copy inherits
 
@@ -89,8 +95,9 @@ Surveyed on 2026-10-28, on `main` after #19.
 
 ## 7. Known gaps
 
-- [ ] **No installers.** The desktop app builds from source (`just desktop`); `bundle.active` is
-  off, so there are no signed builds to download yet.
+- [ ] **No signed installers.** The app targets macOS and Android. `just desktop-build` makes an
+  unsigned `Pirsig.app` and `.dmg`, and `just android` an APK, but there is no notarised build or
+  Play Store bundle to download yet.
 - [ ] **A copy has no shared history.** GitHub templates copy files, not commits, so the first
   `git pull upstream main` needs `--allow-unrelated-histories` (the README says so).
 - [ ] **`brain/` is the author's.** A copy starts with h0ffmann's public notes, on purpose (the

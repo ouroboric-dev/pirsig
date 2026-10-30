@@ -116,12 +116,7 @@ fn detail(d: &ProjectDetail) -> String {
 }
 
 async fn show(ctx: &AppContext, project: projects::Model) -> Result<ProjectDetail> {
-    let notes = project
-        .notes(&ctx.db)
-        .await?
-        .into_iter()
-        .map(Into::into)
-        .collect();
+    let notes = ProjectNoteDto::many(&ctx.db, project.notes(&ctx.db).await?).await?;
     Ok(ProjectDetail {
         project: project.into(),
         notes,

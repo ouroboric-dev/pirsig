@@ -415,7 +415,9 @@ async fn projects_pull_notes_in_without_owning_them() {
         .await;
         request
             .post("/api/notes")
-            .json(&json!({ "title": "Score against buoys", "kind": "permanent" }))
+            .json(
+                &json!({ "title": "Score against buoys", "kind": "permanent", "tags": ["buoys"] }),
+            )
             .await;
         let res = request
             .post(&format!("/api/projects/{project}/notes"))
@@ -424,6 +426,7 @@ async fn projects_pull_notes_in_without_owning_them() {
         let pulled: Value = res.json();
         assert_eq!(pulled[0]["zid"], "1");
         assert_eq!(pulled[0]["context"], "the method");
+        assert_eq!(pulled[0]["tags"], json!(["buoys"]));
         let res = request
             .post(&format!("/api/projects/{project}/notes"))
             .json(&json!({ "zid": "404" }))

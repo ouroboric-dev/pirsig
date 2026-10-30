@@ -11,6 +11,16 @@
     "github": {
       "type": "http",
       "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "open-pencil": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "-p",
+        "@open-pencil/mcp@0.16.0",
+        "openpencil-mcp"
+      ]
     }
   }
 }

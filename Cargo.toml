@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/obsidian-painter", "crates/pirsig-drawings", "crates/pirsig-github"]
+members = ["crates/obsidian-painter", "crates/pirsig-drawings", "crates/pirsig-github", "crates/pirsig-mobile"]
 # the Tauri shell builds on its own (it needs a webview); see desktop/README.md
 exclude = ["desktop/src-tauri"]
 
@@ -50,6 +50,10 @@ serde_yaml = { version = "0.9" }
 # ingest: RSS/Atom feeds and the arXiv API (Atom)
 feed-rs = { version = "2" }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+# pirsig.toml, and `psg bootstrap repo`: a fork state out of a GitHub tarball
+toml = { version = "0.8" }
+flate2 = { version = "1" }
+tar = { version = "0.4" }
 # psg bootstrap gh: what to index from GitHub, and how little of a private repo
 pirsig-github = { path = "crates/pirsig-github" }
 
@@ -70,4 +74,7 @@ insta = { version = "1.34", features = ["redactions", "yaml", "filters"] }
 
 # the Obsidian plugin ships this crate as WebAssembly: small beats fast
 [profile.release.package.obsidian-painter]
+opt-level = "s"
+
+[profile.release.package.pirsig-mobile]
 opt-level = "s"

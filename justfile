@@ -3,6 +3,9 @@
 
 set dotenv-load := true
 
+# rustup's cargo first, so rust-toolchain.toml wins over a Homebrew or distro cargo
+export PATH := env("CARGO_HOME", home_directory() / ".cargo") / "bin:" + env("PATH")
+
 psg := "cargo run -q --bin psg --"
 
 default:
@@ -64,6 +67,10 @@ ready:
 bootstrap *args:
     GH_TOKEN=$(gh auth token) {{psg}} bootstrap gh {{args}}
 
+# Start from any Pirsig repository's brain/ (default: [template] repo in pirsig.toml): just bootstrap-repo acme/brain
+bootstrap-repo *args:
+    {{psg}} bootstrap repo {{args}}
+
 # Start from the fork state in brain/ (h0ffmann's public notes); replaces your brain after a backup
 fork-state:
     {{psg}} fork import brain --overwrite
@@ -92,9 +99,26 @@ plast:
 painter:
     cd obsidian-painter && npm ci && npm run build && npm run check && npm test
 
-# Open the desktop app (Tauri): the whole brain, on the same database as `psg`
+# Open the app (Tauri) on macOS: the whole brain, on the same database as `psg`
 desktop:
     cargo run --manifest-path desktop/src-tauri/Cargo.toml
+
+# Build Pirsig.app for macOS (desktop/src-tauri/target/release/bundle/macos); unsigned
+desktop-build:
+    cd desktop && npm ci && npx tauri build --bundles app,dmg
+
+# Run the app on an Android device or emulator (needs the Android SDK, NDK and JDK 17)
+android-dev:
+    cd desktop && npm ci && npx tauri android dev
+
+# Build an Android APK for arm64 phones (desktop/src-tauri/gen/android/app/build/outputs)
+android:
+    cd desktop && npm ci && npx tauri android build --apk --target aarch64
+
+# Build the phone UI (crates/pirsig-mobile, Leptos to WebAssembly) into desktop/dist/mobile;
+# then `just dev` serves it at http://localhost:5150/mobile/
+mobile-ui *args:
+    scripts/build-mobile-ui.sh {{args}}
 
 # The UI end to end in WebKit, on a fresh throwaway brain (Playwright)
 desktop-e2e:

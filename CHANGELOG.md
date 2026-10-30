@@ -4,6 +4,24 @@ What changes in Pirsig, newest first. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `pirsig.toml`: how a copy runs — the template repository a brain is bootstrapped from, the
+  fork state's folder, the defaults of `psg gh`, and what the apps start from. Every key is
+  optional; unknown keys are an error.
+- `psg bootstrap repo [OWNER/REPO | URL | DIR]`: start a brain from any Pirsig repository's fork
+  state, from one tarball (no `git`), with `--overwrite` to replace a brain after a backup.
+- The app targets macOS and Android. An installed `Pirsig.app` (`just desktop-build`) keeps its
+  brain in its data folder and bootstraps it from the template on first launch; Android builds
+  with `just android` / `just android-dev`.
+
+### Changed
+
+- `psg fork export|import` default to `[brain] fork_state`, and `psg gh` takes its defaults
+  from `[github]`.
+
 ## [0.1.0] - unreleased
 
 The first version meant to be copied, as a GitHub template.

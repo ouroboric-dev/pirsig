@@ -7,6 +7,7 @@ and plain HTML, CSS and JavaScript for its UI.
 
 1. Install [rustup](https://rustup.rs) and [`just`](https://github.com/casey/just).
    `rust-toolchain.toml` pins the Rust version; the first `cargo` command installs it.
+   `just` puts rustup's `cargo` ahead of any other on PATH (a Homebrew `rust` ignores the pin).
 2. `just check` runs what CI runs: formatting, clippy (pedantic) and every test.
 3. `just dev` serves the API and the UI on http://localhost:5150; `just desktop` opens the app.
 4. For the UI tests: `just desktop-e2e` (Node and Playwright's WebKit).

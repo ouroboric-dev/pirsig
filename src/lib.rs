@@ -11,6 +11,8 @@ pub mod models;
 pub mod plasticity;
 pub mod readiness;
 pub mod reset;
+pub mod seed;
+pub mod settings;
 pub mod tasks;
 pub mod vault;
 pub mod views;

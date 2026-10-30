@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "identifier": "io.github.h0ffmann.pirsig",
   "build": {
-    "frontendDist": "../dist"
+    "frontendDist": "../dist",
+    "beforeDevCommand": "bash ../scripts/build-mobile-ui.sh",
+    "beforeBuildCommand": "bash ../scripts/build-mobile-ui.sh"
   },
   "app": {
     "withGlobalTauri": false,
@@ -13,9 +15,26 @@
     }
   },
   "bundle": {
-    "active": false,
+    "active": true,
+    "targets": [
+      "app",
+      "dmg"
+    ],
+    "category": "Productivity",
+    "shortDescription": "A second brain: PARA and a Zettelkasten slip-box",
+    "license": "MPL-2.0",
     "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
       "icons/icon.png"
-    ]
+    ],
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "android": {
+      "minSdkVersion": 24
+    }
   }
 }
